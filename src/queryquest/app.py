@@ -7,9 +7,11 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from rich.console import Console
 from rich.prompt import Prompt
+from rich.panel import Panel
+from rich import box
 
 from .chat_session import run_chat_session
-from .cli import normalize_prompt_input, parse_args
+from .cli import normalize_prompt_input, parse_args, print_banner
 from .config import EXCEL_INFO_FORMAT_VERSION, PROVIDERS_BY_NAME, SYSTEM_PROMPT
 from .excel.context import (
 	build_excel_files_info,
@@ -29,7 +31,7 @@ CONSOLE = Console()
 def main() -> None:
 	"""Initialize configuration and run the interactive chat session."""
 	load_dotenv()
-	CONSOLE.print("HI, I'm QueryQuest your personal Excel agent")
+	print_banner(CONSOLE)
 	options = parse_args(sys.argv[1:], CONSOLE)
 
 	state = load_state()
@@ -45,7 +47,15 @@ def main() -> None:
 	excel_dir = normalize_excel_dir(Path(excel_dir_input))
 
 	config = PROVIDERS_BY_NAME[state["provider"]]
-	CONSOLE.print(f"Using provider: {config.name} (model: {state['model']})")
+	CONSOLE.print(
+		Panel(
+			f"[bold]Provider[/bold]: [cyan]{config.name}[/cyan]\n"
+			f"[bold]Model[/bold]: [bright_white]{state['model']}[/bright_white]",
+			border_style="bright_cyan",
+			box=box.ROUNDED,
+			padding=(0, 1),
+		)
+	)
 
 	excel_info_cache = {
 		"signature": state.get("excel_signature") if state else None,
@@ -113,7 +123,15 @@ def main() -> None:
 		prompt = ""
 
 	if options.setup and not prompt:
-		CONSOLE.print("Setup complete. Type prompts below. Use [cyan]QQ -q[/cyan] or [cyan]QQ -quit[/cyan] to exit.")
+		CONSOLE.print(
+			Panel(
+				"[green]Setup complete.[/green] Type prompts below.\n"
+				"Use [cyan]QQ -q[/cyan] or [cyan]QQ -quit[/cyan] to exit.",
+				border_style="bright_green",
+				box=box.ROUNDED,
+				padding=(0, 1),
+			)
+		)
 
 	run_chat_session(
 		console=CONSOLE,

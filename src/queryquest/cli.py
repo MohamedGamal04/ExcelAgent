@@ -2,22 +2,53 @@
 
 from rich.console import Console
 from rich.prompt import Prompt
+from rich.panel import Panel
+from rich.table import Table
+from rich import box
 
 from .config import CliOptions
 
 
 def print_help(console: Console) -> None:
 	"""Render CLI usage and available command-line options."""
-	console.print("[bold]QueryQuest CLI[/bold]")
+	help_table = Table(box=box.ROUNDED, show_header=False, show_edge=True, border_style="bright_magenta", pad_edge=False)
+	help_table.add_column("Option", style="bold cyan", no_wrap=True)
+	help_table.add_column("Description", style="white")
+	help_table.add_row("-h, --help", "Show this help message and exit")
+	help_table.add_row("-s, --setup", "Reconfigure provider/API key/model and save settings")
+	help_table.add_row("-p, --prompt", "Prompt text to send to the configured LLM")
+	help_table.add_row("-q, --quit", "Exit the session")
+
 	console.print(
-		"Usage: [cyan]QQ[/cyan] [yellow][-s|--setup][/yellow] "
-		"[yellow][-p|--prompt[/yellow] <text>[yellow]][/yellow] [yellow][-q|--quit][/yellow]"
+		Panel(
+			help_table,
+			title="[bold magenta]QueryQuest CLI[/bold magenta]",
+			border_style="bright_blue",
+			box=box.DOUBLE,
+			padding=(1, 2),
+		)
 	)
-	console.print("\nOptions:")
-	console.print("  [yellow]-h[/yellow], [yellow]--help[/yellow]      Show this help message and exit")
-	console.print("  [yellow]-s[/yellow], [yellow]--setup[/yellow]     Reconfigure provider/API key/model and save settings")
-	console.print("  [yellow]-p[/yellow], [yellow]--prompt[/yellow]    Prompt text to send to the configured LLM")
-	console.print("  [yellow]-q[/yellow], [yellow]--quit[/yellow]      Exit the session")
+	console.print(
+		Panel(
+			"[bold]Usage[/bold]\n[cyan]QQ[/cyan] [yellow]-s|--setup[/yellow] [yellow]-p|--prompt[/yellow] <text> [yellow]-q|--quit[/yellow]",
+			border_style="bright_green",
+			box=box.ROUNDED,
+			padding=(0, 1),
+		)
+	)
+
+
+def print_banner(console: Console) -> None:
+	"""Render a short welcome banner for the interactive CLI."""
+	console.print(
+		Panel(
+			"[bold bright_magenta]QueryQuest[/bold bright_magenta]\n"
+			"[cyan]Your personal Excel agent[/cyan]",
+			border_style="bright_magenta",
+			box=box.ROUNDED,
+			padding=(1, 2),
+		)
+	)
 
 
 def is_quit_command(text: str) -> bool:

@@ -6,11 +6,51 @@ from collections.abc import Callable
 from openai import APIConnectionError, AuthenticationError, NotFoundError, OpenAI, RateLimitError
 from openai.types.chat import ChatCompletionMessageParam
 from rich.console import Console
+from rich import box
+from rich.panel import Panel
 from rich.prompt import Prompt
+from rich.syntax import Syntax
 
 from .cli import is_quit_command, normalize_prompt_input
 from .logger import append_log
 from .sql.handoff import expose_sql_statements, extract_sql_statements
+
+
+def _print_user_prompt(console: Console, prompt: str) -> None:
+	"""Render the user's prompt in a colorful boxed panel."""
+	console.print(
+		Panel(
+			prompt,
+			title="[bold bright_cyan]You[/bold bright_cyan]",
+			border_style="bright_cyan",
+			box=box.ROUNDED,
+			padding=(0, 1),
+		)
+	)
+
+
+def _print_llm_response(console: Console, output: str, provider_name: str, model_name: str) -> None:
+	"""Render the model response in a colorful boxed panel."""
+	try:
+		parsed_output = json.loads(output)
+		renderable = Syntax(
+			json.dumps(parsed_output, indent=2, ensure_ascii=False),
+			"json",
+			theme="monokai",
+			word_wrap=True,
+		)
+	except Exception:
+		renderable = output
+
+	console.print(
+		Panel(
+			renderable,
+			title=f"[bold bright_magenta]{provider_name}[/bold bright_magenta] [dim]({model_name})[/dim]",
+			border_style="bright_magenta",
+			box=box.DOUBLE,
+			padding=(0, 1),
+		)
+	)
 
 
 def run_chat_session(
@@ -31,7 +71,7 @@ def run_chat_session(
 
 	while True:
 		while not prompt:
-			prompt = Prompt.ask("User", console=console).strip()
+			prompt = Prompt.ask("You", console=console).strip()
 
 		if prompt.startswith("-"):
 			console.print("Please prefix options with [cyan]qq[/cyan] or [cyan]QQ[/cyan] (example: [cyan]qq -q[/cyan]).")
@@ -48,6 +88,8 @@ def run_chat_session(
 			append_log({"event": "quit", "provider": provider_name, "model": model_name})
 			console.print("Goodbye.")
 			return
+
+		_print_user_prompt(console, prompt)
 
 		try:
 			system_prompt = system_prompt_provider()
@@ -103,11 +145,9 @@ def run_chat_session(
 					"output": output,
 				}
 			)
-			console.print("\n[bold]Response:[/bold]\n")
-			console.print(output)
+			_print_llm_response(console, output, provider_name, model_name)
 
 			if not sql_statements:
-				console.print("No valid sql_statements found in model response JSON.")
 				append_log(
 					{
 						"event": "sql_expose_skipped_no_statements",
@@ -125,7 +165,7 @@ def run_chat_session(
 				if execute_choice.lower() in {"y", "yes"}:
 					expose_sql_statements(sql_statements, provider_name, model_name, console)
 				else:
-					console.print("Execution skipped. Continuing chat. Type [cyan]QQ -q[/cyan] to quit.")
+					console.print("[yellow]Execution skipped.[/yellow] Continuing chat. Type [cyan]QQ -q[/cyan] to quit.")
 		except NotFoundError:
 			append_log(
 				{
@@ -177,4 +217,4 @@ def run_chat_session(
 				"Check the provider URL and whether the service is running."
 			)
 
-		prompt = Prompt.ask("User", console=console).strip()
+		prompt = ""

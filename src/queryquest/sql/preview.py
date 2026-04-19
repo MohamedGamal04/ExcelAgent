@@ -6,6 +6,7 @@ from typing import Any
 
 import pandas as pd
 from rich.console import Console
+from rich import box
 from rich.table import Table
 
 
@@ -26,9 +27,15 @@ def _is_delete_statement(statement: str) -> bool:
 
 def print_sql_statements_table(sql_statements: list[str], console: Console) -> None:
 	"""Render the SQL statement list as a numbered Rich table."""
-	table = Table(title="SQL statements to execute", show_lines=True)
+	table = Table(
+		title="SQL statements to execute",
+		show_lines=True,
+		box=box.ROUNDED,
+		border_style="bright_magenta",
+		title_style="bold magenta",
+	)
 	table.add_column("#", style="cyan", no_wrap=True)
-	table.add_column("Statement", style="white")
+	table.add_column("Statement", style="white", header_style="bold blue")
 
 	has_delete_statement = False
 
@@ -46,10 +53,16 @@ def print_sql_statements_table(sql_statements: list[str], console: Console) -> N
 
 def print_dataframe_as_table(df: pd.DataFrame, console: Console, title: str = "Query result") -> None:
 	"""Render a DataFrame as a Rich table with folded columns."""
-	table = Table(title=title, show_lines=True)
+	table = Table(
+		title=title,
+		show_lines=True,
+		box=box.ROUNDED,
+		border_style="bright_blue",
+		title_style="bold cyan",
+	)
 
 	for column_name in df.columns:
-		table.add_column(str(column_name), overflow="fold")
+		table.add_column(str(column_name), overflow="fold", header_style="bold blue")
 
 	for row in df.itertuples(index=False, name=None):
 		table.add_row(*[_format_cell(value) for value in row])
