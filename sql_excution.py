@@ -74,6 +74,10 @@ def _is_dml_statement(statement: str) -> bool:
     return statement.lstrip().lower().startswith(("delete", "insert", "update"))
 
 
+def _is_join_statement(statement: str) -> bool:
+    return bool(re.search(r"\bjoin\b", statement, flags=re.IGNORECASE))
+
+
 def _extract_target_table_name(statement: str) -> str | None:
     update_match = re.match(r"^\s*update\s+(.+?)\s+set\b", statement, flags=re.IGNORECASE)
     if update_match:
@@ -172,7 +176,13 @@ def execute_sql_statements(sql_statements: list[str], console: Console | None = 
             continue
 
         results = cursor.df()
-        print_dataframe_as_table(results, active_console)
+        if _is_join_statement(statement):
+            preview_df = results.head(20)
+            print_dataframe_as_table(preview_df, active_console, title="Query result (JOIN preview)")
+            if len(results) > len(preview_df):
+                active_console.print(f"Showing first {len(preview_df)} of {len(results)} join rows.")
+        else:
+            print_dataframe_as_table(results, active_console)
 
     if not wrote_data:
         return
