@@ -1,8 +1,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.json
+*.txt
 .env
-.provider.json
-history.json
-logs.txt
 .venv/
