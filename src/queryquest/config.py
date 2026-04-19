@@ -1,51 +1,58 @@
+"""Static configuration and shared dataclasses for QueryQuest."""
+
 from dataclasses import dataclass
 from pathlib import Path
 
+
 @dataclass(frozen=True)
 class ProviderConfig:
-    name: str
-    base_url: str
-    default_model: str
-    env_key_names: tuple[str, ...]
+	"""Provider connection settings used to initialize an OpenAI-compatible client."""
+
+	name: str
+	base_url: str
+	default_model: str
+	env_key_names: tuple[str, ...]
 
 
 @dataclass(frozen=True)
 class CliOptions:
-    setup: bool
-    prompt: str | None
+	"""Normalized CLI options parsed from command-line or interactive input."""
+
+	setup: bool
+	prompt: str | None
 
 
 PROVIDERS = {
-    "1": ProviderConfig(
-        name="gemini",
-        base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
-        default_model="gemini-2.0-flash",
-        env_key_names=("GOOGLE_API_KEY", "GEMINI_API_KEY"),
-    ),
-    "2": ProviderConfig(
-        name="groq",
-        base_url="https://api.groq.com/openai/v1",
-        default_model="llama-3.3-70b-versatile",
-        env_key_names=("GROQ_API_KEY",),
-    ),
-    "3": ProviderConfig(
-        name="nvidia",
-        base_url="https://integrate.api.nvidia.com/v1",
-        default_model="meta/llama-3.1-70b-instruct",
-        env_key_names=("NVIDIA_API_KEY",),
-    ),
-    "4": ProviderConfig(
-        name="ollama",
-        base_url="http://localhost:11434/v1",
-        default_model="llama3.2",
-        env_key_names=("OLLAMA_API_KEY",),
-    ),
+	"1": ProviderConfig(
+		name="gemini",
+		base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+		default_model="gemini-2.0-flash",
+		env_key_names=("GOOGLE_API_KEY", "GEMINI_API_KEY"),
+	),
+	"2": ProviderConfig(
+		name="groq",
+		base_url="https://api.groq.com/openai/v1",
+		default_model="llama-3.3-70b-versatile",
+		env_key_names=("GROQ_API_KEY",),
+	),
+	"3": ProviderConfig(
+		name="nvidia",
+		base_url="https://integrate.api.nvidia.com/v1",
+		default_model="meta/llama-3.1-70b-instruct",
+		env_key_names=("NVIDIA_API_KEY",),
+	),
+	"4": ProviderConfig(
+		name="ollama",
+		base_url="http://localhost:11434/v1",
+		default_model="llama3.2",
+		env_key_names=("OLLAMA_API_KEY",),
+	),
 }
 
 PROVIDERS_BY_NAME = {config.name: config for config in PROVIDERS.values()}
 
-ROOT_DIR = Path(__file__).resolve().parents[0]
-STATE_FILE = Path(__file__).with_name(".provider.json")
+ROOT_DIR = Path(__file__).resolve().parents[2]
+STATE_FILE = ROOT_DIR / ".provider.json"
 Excel_DIR = ROOT_DIR / "excel_files"
 LOG_FILE = ROOT_DIR / "logs.txt"
 TEMP_SQL_FILE = ROOT_DIR / "temporary_sql_input.json"
@@ -70,6 +77,6 @@ You are QueryQuest, a precise Data Engineering Assistant. Your goal is to transl
 ### OUTPUT FORMAT
 You MUST respond with a valid JSON object ONLY.
 {
-    "sql_statements": ["SQL_QUERY_1"],
-    "explanation": "A brief description of what these queries will do."
+	"sql_statements": ["SQL_QUERY_1"],
+	"explanation": "A brief description of what these queries will do."
 }"""

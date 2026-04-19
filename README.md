@@ -1,0 +1,104 @@
+# QueryQuest
+
+QueryQuest is a Python CLI assistant that converts natural language requests into SQL queries and executes them against Excel workbooks.
+
+This project was built for a Junior AI Engineer task with these key constraints:
+- Python only
+- Custom tool layer (no LangChain, LlamaIndex, AutoGen, CrewAI)
+- Free-tier or local LLM providers
+
+## What It Can Do
+- Read workbook context (sheet names, schema summaries, sample rows)
+- Generate SQL from natural language prompts using an LLM
+- Preview SQL statements in table form before execution
+- Execute `SELECT`, `UPDATE`, `INSERT`, and `DELETE` via DuckDB
+- Preview join outputs with bounded row previews
+- Confirm before writing DML changes back to Excel files
+- Handle model responses with extra prose around JSON payloads
+
+## Supported Providers
+Configured via OpenAI-compatible chat APIs:
+- Gemini
+- Groq
+- NVIDIA NIM
+- Ollama (local)
+
+## Project Structure
+```text
+src/queryquest/
+	app.py               # Package entrypoint
+	cli.py               # CLI parsing and normalization
+	config.py            # Provider and app configuration
+	setup_flow.py        # Interactive provider/model/key setup
+	state.py             # Persisted setup and Excel context cache
+	logger.py            # JSON event logging
+	chat_session.py      # Prompt loop and LLM orchestration
+	excel/context.py     # Excel discovery and context building
+	sql/
+		handoff.py         # JSON extraction + SQL handoff
+		executor.py        # SQL execution and Excel write-back
+		preview.py         # Rich table rendering
+
+tests/
+	test_cli.py
+	test_sql_handoff.py
+	test_state.py
+```
+
+## Requirements
+- Python 3.12+
+- `uv` recommended for environment/dependency management
+
+## Setup
+From the repository root:
+
+1. Create a virtual environment (if needed):
+```bash
+uv venv
+```
+
+2. Install dependencies and package entrypoints:
+```bash
+uv sync
+```
+
+3. Run the CLI:
+```bash
+qq
+```
+
+## Usage
+Setup provider/model credentials:
+```bash
+qq --setup
+```
+
+Run interactive mode:
+```bash
+qq
+```
+
+Run with one prompt:
+```bash
+qq -p "show the top 10 highest list prices"
+```
+
+Show help:
+```bash
+qq -h
+```
+
+## Testing
+Run tests from project root:
+```bash
+PYTHONPATH=src .venv/bin/python -m unittest discover -s tests -v
+```
+
+## Data Expectations
+- Default workbook directory: `excel_files/`
+- QueryQuest currently loads the first sheet in each workbook for SQL table registration and write-back mapping.
+
+## Notes
+- Logs are appended to `logs.txt`.
+- Provider/model/api key setup is stored in `.provider.json`.
+- The SQL extractor is robust to mixed responses (plain text + fenced JSON + embedded JSON object).

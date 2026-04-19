@@ -1,3 +1,5 @@
+"""Rich table rendering helpers used by SQL preview and execution flows."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -8,6 +10,7 @@ from rich.table import Table
 
 
 def _format_cell(value: Any) -> str:
+	"""Normalize values for compact terminal table rendering."""
 	if value is None:
 		return ""
 	# Keep table output clean for missing numeric values.
@@ -17,6 +20,7 @@ def _format_cell(value: Any) -> str:
 
 
 def print_sql_statements_table(sql_statements: list[str], console: Console) -> None:
+	"""Render the SQL statement list as a numbered Rich table."""
 	table = Table(title="SQL statements to execute", show_lines=True)
 	table.add_column("#", style="cyan", no_wrap=True)
 	table.add_column("Statement", style="white")
@@ -28,6 +32,7 @@ def print_sql_statements_table(sql_statements: list[str], console: Console) -> N
 
 
 def print_dataframe_as_table(df: pd.DataFrame, console: Console, title: str = "Query result") -> None:
+	"""Render a DataFrame as a Rich table with folded columns."""
 	table = Table(title=title, show_lines=True)
 
 	for column_name in df.columns:
