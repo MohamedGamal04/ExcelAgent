@@ -2,6 +2,8 @@
 
 QueryQuest is a Python CLI assistant that converts natural language requests into SQL queries and executes them against Excel workbooks.
 
+<img width="722" height="434" alt="qq gif" src="https://github.com/user-attachments/assets/dc38c412-3b70-4e97-a225-4e4456dc9594" />
+
 ## What It Can Do
 - Read workbook context (sheet names, schema summaries, sample rows)
 - Generate SQL from natural language prompts using an LLM
