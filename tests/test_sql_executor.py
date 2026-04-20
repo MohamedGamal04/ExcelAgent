@@ -1,10 +1,14 @@
 import unittest
 
 from queryquest.sql.executor import (
+    _build_update_change_predicate,
+    _extract_update_table_name,
+    _extract_update_where_clause,
     _prepare_statement,
     _normalize_single_quoted_table_identifiers,
     _quote_known_identifiers,
     _rewrite_to_normalized_identifiers,
+    _update_statement_to_scope_query,
     _validate_sql_allowlist,
     _strip_identifier_quotes,
     execute_sql_statements,
@@ -107,6 +111,39 @@ class SqlExecutorNormalizationTests(unittest.TestCase):
         self.assertEqual(
             _validate_sql_allowlist("SELECT * FROM a JOIN b ON a.id = b.id"),
             "'JOIN' is not allowed",
+        )
+
+    def test_extract_update_table_name(self) -> None:
+        statement = "UPDATE listings SET price = 2000 WHERE price = 1000"
+        self.assertEqual(_extract_update_table_name(statement), "listings")
+
+    def test_extract_update_where_clause(self) -> None:
+        statement = "UPDATE listings SET price = 2000 WHERE price = 1000"
+        self.assertEqual(_extract_update_where_clause(statement), "price = 1000")
+
+    def test_extract_update_where_clause_missing(self) -> None:
+        statement = "UPDATE listings SET price = 2000"
+        self.assertIsNone(_extract_update_where_clause(statement))
+
+    def test_update_statement_to_scope_query_with_where(self) -> None:
+        statement = "UPDATE listings SET price = 2000 WHERE price = 1000"
+        self.assertEqual(
+            _update_statement_to_scope_query(statement),
+            "SELECT * FROM listings WHERE (price = 1000) AND ((price IS DISTINCT FROM (2000)))",
+        )
+
+    def test_update_statement_to_scope_query_without_where(self) -> None:
+        statement = "UPDATE listings SET price = 2000"
+        self.assertEqual(
+            _update_statement_to_scope_query(statement),
+            "SELECT * FROM listings WHERE ((price IS DISTINCT FROM (2000)))",
+        )
+
+    def test_build_update_change_predicate_multiple_assignments(self) -> None:
+        statement = "UPDATE listings SET price = 2000, status = 'active' WHERE id = 1"
+        self.assertEqual(
+            _build_update_change_predicate(statement),
+            "(price IS DISTINCT FROM (2000)) OR (status IS DISTINCT FROM ('active'))",
         )
 
     def test_execute_sql_statements_refuses_disallowed_sql(self) -> None:
